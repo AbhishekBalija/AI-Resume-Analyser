@@ -4,13 +4,37 @@ const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const session = require('express-session');
 const passport = require('./auth');
-const { createUser, getUserByEmail } = require('./db');
+const { connectDB, createUser, getUserByEmail } = require('./db');
 const path = require('path');
 
 const app = express();
 const port = process.env.PORT || 8080;
 
-app.use(bodyParser.json());
+// Initialize database connection
+(async () => {
+    try {
+        await connectDB();
+        console.log('Initial database connection successful');
+    } catch (error) {
+        console.error('Failed to establish initial database connection:', error);
+        process.exit(1);
+    }
+})();
+
+// Log environment information
+console.log('Server Environment:', {
+    nodeEnv: process.env.NODE_ENV,
+    port: port,
+    hasMongoUri: !!process.env.MONGODB_URI,
+    hasGoogleCreds: !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET)
+});
+
+// Increase the timeout for the server
+app.timeout = 120000; // 2 minutes
+
+// Body parser with size limits
+app.use(bodyParser.json({ limit: '1mb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '1mb' }));
 
 // Session configuration
 const sessionConfig = {
@@ -25,13 +49,19 @@ const sessionConfig = {
 };
 
 if (process.env.NODE_ENV === 'production') {
-    app.set('trust proxy', 1); // trust first proxy
-    sessionConfig.cookie.secure = true; // serve secure cookies
+    app.set('trust proxy', 1);
+    sessionConfig.cookie.secure = true;
 }
 
 app.use(session(sessionConfig));
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error('Error:', err);
+    res.status(500).json({ error: 'Internal server error', details: err.message });
+});
 
 // Set CSP headers
 app.use((req, res, next) => {
@@ -61,12 +91,20 @@ app.get('/api/key', (req, res) => {
     res.json({ apiKey: process.env.GEMINI_API_KEY });
 });
 
+// Registration endpoint with better error handling
 app.post('/register', async (req, res) => {
+    console.log('Registration attempt for:', req.body.email);
     const { name, email, password } = req.body;
+
     try {
+        if (!name || !email || !password) {
+            return res.status(400).json({ error: 'All fields are required' });
+        }
+
         // Check if user already exists
         const existingUser = await getUserByEmail(email);
         if (existingUser) {
+            console.log('User already exists:', email);
             return res.status(400).json({ error: 'Email already registered' });
         }
 
@@ -76,14 +114,15 @@ app.post('/register', async (req, res) => {
         // Log the user in after registration
         req.login(user, (err) => {
             if (err) {
-                console.error('Login error:', err);
+                console.error('Login error after registration:', err);
                 return res.status(500).json({ error: 'Error logging in after registration' });
             }
+            console.log('User registered and logged in successfully:', email);
             res.status(201).json({ success: true, redirectUrl: '/HomePage.html' });
         });
     } catch (error) {
-        console.error('Error creating user:', error);
-        res.status(500).json({ error: 'Registration failed' });
+        console.error('Registration error:', error);
+        res.status(500).json({ error: 'Registration failed: ' + error.message });
     }
 });
 
@@ -105,7 +144,7 @@ app.post('/login', async (req, res) => {
         }
     } catch (error) {
         console.error('Login error:', error);
-        res.status(500).json({ error: 'Login failed' });
+        res.status(500).json({ error: 'Login failed: ' + error.message });
     }
 });
 
