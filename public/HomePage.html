@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Resume Analyzer</title>
+    <link rel="stylesheet" href="HomePage.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script>
+        window.pdfjsLib = pdfjsLib;
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.0/mammoth.browser.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>AI Resume Analyzer</h1>
+        
+        <div class="role-section" id="roleSection">
+            <h2>Select Your Job Details</h2>
+            <div class="role-input-container">
+                <div class="select-wrapper">
+                    <select id="roleSelect" class="role-select">
+                        <option value="">Select a role</option>
+                        <optgroup label="Technology">
+                            <option value="Software Engineer">Software Engineer</option>
+                            <option value="Frontend Developer">Frontend Developer</option>
+                            <option value="Backend Developer">Backend Developer</option>
+                            <option value="Full Stack Developer">Full Stack Developer</option>
+                            <option value="DevOps Engineer">DevOps Engineer</option>
+                            <option value="Data Scientist">Data Scientist</option>
+                            <option value="Data Analyst">Data Analyst</option>
+                            <option value="Machine Learning Engineer">Machine Learning Engineer</option>
+                            <option value="Cloud Engineer">Cloud Engineer</option>
+                            <option value="QA Engineer">QA Engineer</option>
+                        </optgroup>
+                        <optgroup label="Business">
+                            <option value="Product Manager">Product Manager</option>
+                            <option value="Project Manager">Project Manager</option>
+                            <option value="Business Analyst">Business Analyst</option>
+                            <option value="Marketing Manager">Marketing Manager</option>
+                            <option value="Sales Manager">Sales Manager</option>
+                            <option value="Account Manager">Account Manager</option>
+                        </optgroup>
+                        <optgroup label="Design">
+                            <option value="UI Designer">UI Designer</option>
+                            <option value="UX Designer">UX Designer</option>
+                            <option value="Product Designer">Product Designer</option>
+                            <option value="Graphic Designer">Graphic Designer</option>
+                        </optgroup>
+                        <optgroup label="Finance">
+                            <option value="Financial Analyst">Financial Analyst</option>
+                            <option value="Accountant">Accountant</option>
+                            <option value="Investment Banker">Investment Banker</option>
+                            <option value="Financial Advisor">Financial Advisor</option>
+                        </optgroup>
+                        <optgroup label="Healthcare">
+                            <option value="Registered Nurse">Registered Nurse</option>
+                            <option value="Medical Doctor">Medical Doctor</option>
+                            <option value="Healthcare Administrator">Healthcare Administrator</option>
+                            <option value="Pharmacist">Pharmacist</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div class="select-wrapper">
+                    <select id="experienceSelect" class="experience-select">
+                        <option value="">Select experience level</option>
+                        <option value="Entry Level">Entry Level (0-2 years)</option>
+                        <option value="Mid Level">Mid Level (3-5 years)</option>
+                        <option value="Senior Level">Senior Level (6-8 years)</option>
+                        <option value="Expert Level">Expert Level (8+ years)</option>
+                    </select>
+                </div>
+                <button id="continueBtn" class="continue-btn">Continue</button>
+            </div>
+        </div>
+
+        <div class="upload-section" style="display: none;">
+            <div class="upload-box" id="uploadBox">
+                <div class="upload-icon"></div>
+                <h3>Upload Your Resume</h3>
+                <p>Drag & drop your resume or click to browse</p>
+                <p class="file-types">Supported formats: PDF, DOCX</p>
+                <input type="file" id="resumeInput" accept=".pdf,.docx" hidden>
+            </div>
+        </div>
+
+        <div class="analysis-section" id="analysisSection" style="display: none;">
+            <div class="loader-container">
+                <div class="loader"></div>
+                <p class="progress-text">Analyzing your resume...</p>
+                <p class="analysis-status">Checking document format</p>
+            </div>
+        </div>
+
+        <div class="results-section" id="resultsSection" style="display: none;">
+            <h2>ATS Analysis Results</h2>
+            <div class="target-role"></div>
+            <div class="results-grid">
+                <!-- Content will be dynamically inserted by JavaScript -->
+            </div>
+            <button id="startOverBtn" class="start-over-btn">Analyze Another Resume</button>
+        </div>
+    </div>
+    <script src="HomePage.js"></script>
+</body>
+</html>
