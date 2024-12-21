@@ -78,7 +78,17 @@ app.use(async (req, res, next) => {
 
 // Set CSP headers
 app.use((req, res, next) => {
-    res.setHeader("Content-Security-Policy", "default-src 'self'; font-src 'self' https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data:; connect-src 'self' https://generativelanguage.googleapis.com; worker-src 'self' blob:;");
+    res.setHeader(
+        "Content-Security-Policy",
+        "default-src 'self'; " +
+        "font-src 'self' https://fonts.gstatic.com https://fonts.googleapis.com data:; " +
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; " +
+        "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://accounts.google.com; " +
+        "img-src 'self' data: https://*.googleusercontent.com; " +
+        "connect-src 'self' https://accounts.google.com; " +
+        "frame-src 'self' https://accounts.google.com; " +
+        "base-uri 'self';"
+    );
     next();
 });
 
