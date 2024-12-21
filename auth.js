@@ -4,7 +4,7 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const { createUser, getUserByEmail, getUserById } = require('./db');
 
 // Get the deployment URL from environment variable or use the hardcoded one
-const deploymentURL = process.env.DEPLOYMENT_URL || 'https://ai-resume-analyser-lnsb0vo1x-abhishek-ans-projects-83378fc9.vercel.app';
+const deploymentURL = process.env.DEPLOYMENT_URL || 'https://ai-resume-analyser-dq0k5z4qe-abhishek-ans-projects-83378fc9.vercel.app';
 const callbackURL = process.env.NODE_ENV === 'production'
   ? `${deploymentURL}/auth/google/callback`
   : 'http://localhost:8080/auth/google/callback';
