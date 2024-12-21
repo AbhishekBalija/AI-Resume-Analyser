@@ -11,26 +11,28 @@ const app = express();
 const port = process.env.PORT || 8080;
 
 // Initialize database connection
-(async () => {
-    try {
-        await connectDB();
-        console.log('Initial database connection successful');
-    } catch (error) {
-        console.error('Failed to establish initial database connection:', error);
-        process.exit(1);
+let dbInitialized = false;
+const initializeDB = async () => {
+    if (!dbInitialized) {
+        try {
+            await connectDB();
+            console.log('Initial database connection successful');
+            dbInitialized = true;
+        } catch (error) {
+            console.error('Failed to establish initial database connection:', error);
+            throw error;
+        }
     }
-})();
+};
 
 // Log environment information
 console.log('Server Environment:', {
     nodeEnv: process.env.NODE_ENV,
     port: port,
     hasMongoUri: !!process.env.MONGODB_URI,
-    hasGoogleCreds: !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET)
+    hasGoogleCreds: !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET),
+    isVercel: process.env.VERCEL === '1'
 });
-
-// Increase the timeout for the server
-app.timeout = 120000; // 2 minutes
 
 // Body parser with size limits
 app.use(bodyParser.json({ limit: '1mb' }));
@@ -61,6 +63,17 @@ app.use(passport.session());
 app.use((err, req, res, next) => {
     console.error('Error:', err);
     res.status(500).json({ error: 'Internal server error', details: err.message });
+});
+
+// Ensure database connection before handling requests
+app.use(async (req, res, next) => {
+    try {
+        await initializeDB();
+        next();
+    } catch (error) {
+        console.error('Database connection error:', error);
+        res.status(500).json({ error: 'Database connection failed' });
+    }
 });
 
 // Set CSP headers
