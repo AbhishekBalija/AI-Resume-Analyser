@@ -45,12 +45,26 @@ app.get('/api/key', (req, res) => {
 
 app.post('/register', async (req, res) => {
     const { name, email, password } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
-
     try {
+        // Check if user already exists
+        const existingUser = await getUserByEmail(email);
+        if (existingUser) {
+            return res.status(400).json({ error: 'Email already registered' });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
         const user = await createUser(name, email, hashedPassword);
-        res.status(201).json(user);
+        
+        // Log the user in after registration
+        req.login(user, (err) => {
+            if (err) {
+                console.error('Login error:', err);
+                return res.status(500).json({ error: 'Error logging in after registration' });
+            }
+            res.status(201).json({ success: true, redirectUrl: '/HomePage.html' });
+        });
     } catch (error) {
+        console.error('Error creating user:', error);
         res.status(500).json({ error: 'Registration failed' });
     }
 });
@@ -61,11 +75,18 @@ app.post('/login', async (req, res) => {
     try {
         const user = await getUserByEmail(email);
         if (user && await bcrypt.compare(password, user.password)) {
-            res.status(200).json(user);
+            req.login(user, (err) => {
+                if (err) {
+                    console.error('Login error:', err);
+                    return res.status(500).json({ error: 'Error during login' });
+                }
+                res.status(200).json({ success: true, redirectUrl: '/HomePage.html' });
+            });
         } else {
             res.status(401).json({ error: 'Invalid credentials' });
         }
     } catch (error) {
+        console.error('Login error:', error);
         res.status(500).json({ error: 'Login failed' });
     }
 });
@@ -80,6 +101,19 @@ app.get('/auth/google/callback',
     res.redirect('/HomePage.html');
   }
 );
+
+// Add authentication middleware
+const isAuthenticated = (req, res, next) => {
+    if (req.isAuthenticated()) {
+        return next();
+    }
+    res.redirect('/');
+};
+
+// Protect HomePage.html
+app.get('/HomePage.html', isAuthenticated, (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'HomePage.html'));
+});
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);

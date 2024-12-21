@@ -19,18 +19,25 @@ signUpForm.addEventListener('submit', async (e) => {
     const email = signUpForm.querySelector('input[placeholder="Email"]').value;
     const password = signUpForm.querySelector('input[placeholder="Password"]').value;
 
-    const response = await fetch('/register', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name, email, password }),
-    });
+    try {
+        const response = await fetch('/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ name, email, password }),
+        });
 
-    if (response.ok) {
-        window.location.href = 'HomePage.html';
-    } else {
-        alert('Registration failed');
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+            window.location.href = data.redirectUrl;
+        } else {
+            alert(data.error || 'Registration failed');
+        }
+    } catch (error) {
+        console.error('Registration error:', error);
+        alert('Registration failed. Please try again.');
     }
 });
 
@@ -39,17 +46,24 @@ signInForm.addEventListener('submit', async (e) => {
     const email = signInForm.querySelector('input[placeholder="Email"]').value;
     const password = signInForm.querySelector('input[placeholder="Password"]').value;
 
-    const response = await fetch('/login', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-    });
+    try {
+        const response = await fetch('/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email, password }),
+        });
 
-    if (response.ok) {
-        window.location.href = 'HomePage.html';
-    } else {
-        alert('Login failed');
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+            window.location.href = data.redirectUrl;
+        } else {
+            alert(data.error || 'Login failed');
+        }
+    } catch (error) {
+        console.error('Login error:', error);
+        alert('Login failed. Please try again.');
     }
 });
